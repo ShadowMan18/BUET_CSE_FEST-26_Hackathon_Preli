@@ -11,9 +11,9 @@ def get_db_connection():
     try:
         conn = psycopg2.connect(
             host=db_host,
-            database="frostbyte_logistics",
-            user="root",
-            password="root"
+            database="frostbyte",
+            user="postgres",
+            password="postgres"
         )
         return conn
     except Exception as e:
@@ -93,7 +93,6 @@ def get_products():
 def create_storage_unit():
     data = request.get_json()
     try:
-        # Check if location is WAREHOUSE
         loc = execute_query("SELECT type FROM locations WHERE id = %s", (data['locationId'],), fetch_one=True)
         if not loc:
             return jsonify({"error": "Location not found"}), 404
@@ -223,40 +222,56 @@ def validate_network():
     data = request.get_json()
     if not data or 'date' not in data:
         return jsonify({"error": "Missing date"}), 400
-    
+ 
     target_date = data['date']
     issues = []
-    
+ 
     try:
         demands = execute_query(
             "SELECT location_id, SUM(max_quantity) as total_demand FROM demands WHERE date = %s GROUP BY location_id",
             (target_date,),
             fetch_all=True
         )
-        
+ 
         if not demands:
             return jsonify({"feasible": True}), 200
-
+ 
         for d in demands:
             loc_id = d['location_id']
             total_needed = d['total_demand']
-            
+ 
             storage = execute_query(
                 "SELECT SUM(capacity) as total_cap FROM storage_units WHERE location_id = %s",
                 (loc_id,),
                 fetch_one=True
             )
-            
-            total_capacity = storage['total_cap'] if storage and storage['total_cap'] else 0
-            
-            if total_needed > total_capacity:
-                issues.append(f"MAX_CAPACITY_VIOLATION: Location {loc_id} needs {total_needed} capacity but only has {total_capacity}")
-
+            total_storage = storage['total_cap'] if storage and storage['total_cap'] else 0
+ 
+            if total_storage > 0 and total_needed > total_storage:
+                issues.append(f"MAX_CAPACITY_VIOLATION: Location {loc_id} needs {total_needed} storage but has {total_storage}")
+ 
+           
+            routes_in = execute_query(
+                "SELECT SUM(capacity) as total_route_cap, MIN(min_shipment) as lowest_min FROM routes WHERE to_location_id = %s",
+                (loc_id,),
+                fetch_one=True
+            )
+ 
+            if routes_in and routes_in['total_route_cap']:
+                route_cap = routes_in['total_route_cap']
+                min_ship = routes_in['lowest_min']
+ 
+                if total_needed > route_cap:
+                    issues.append(f"MAX_CAPACITY_VIOLATION: Routes to {loc_id} have cap {route_cap}, but demand is {total_needed}")
+ 
+                if total_needed < min_ship:
+                     issues.append(f"MIN_CAPACITY_VIOLATION: Demand {total_needed} is below minimum shipment {min_ship} for routes to {loc_id}")
+ 
         if issues:
             return jsonify({"feasible": False, "issues": issues}), 200
         else:
             return jsonify({"feasible": True}), 200
-
+ 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
