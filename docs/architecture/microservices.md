@@ -1,4 +1,4 @@
-# ❄️ FrostByte Microservices Architecture
+# FrostByte Microservices Architecture
 
 ## 1. Architectural Overview
 To ensure the FrostByte platform is resilient, scalable, and capable of handling high-concurrency logistics planning, the system is designed as a distributed set of microservices.
@@ -12,7 +12,7 @@ This architecture follows **Domain-Driven Design (DDD)** principles, separating 
 
 ## 2. Service Definitions
 
-### A. Network Infrastructure Service 🌍
+### A. Network Infrastructure Service 
 **Role:** The "Source of Truth" for the physical world.
 **Responsibilities:**
 * Manages the static graph of the logistics network.
@@ -35,7 +35,7 @@ This architecture follows **Domain-Driven Design (DDD)** principles, separating 
 
 ---
 
-### B. Demand Management Service 📦
+### B. Demand Management Service 
 **Role:** The Transactional Engine.
 **Responsibilities:**
 * Captures and manages daily **Delivery Demands**.
@@ -52,7 +52,7 @@ This architecture follows **Domain-Driven Design (DDD)** principles, separating 
 
 ---
 
-### C. Validation & Feasibility Engine 🛡️
+### C. Validation & Feasibility Engine 
 **Role:** The Stateless "Brain".
 **Responsibilities:**
 * Performs complex constraint satisfaction algorithms.
