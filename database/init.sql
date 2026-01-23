@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS locations (
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    required_temp INTEGER NOT NULL
+    required_temp INTEGER NOT NULL,
+    volume_per_unit INTEGER NOT NULL DEFAULT 1
 );
 
 
