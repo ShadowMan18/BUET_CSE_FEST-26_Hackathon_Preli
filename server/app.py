@@ -8,22 +8,16 @@ app = Flask(__name__)
 
 def get_db_connection():
     database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        raise Exception("DATABASE_URL environment variable not set")
     
     try:
-        if database_url:
-            conn = psycopg2.connect(database_url)
-        else:
-            conn = psycopg2.connect(
-                host="db",
-                database="frostbyte",
-                user="postgres",
-                password="postgres"
-            )
+        conn = psycopg2.connect(database_url)
         return conn
     except Exception as e:
         print(f"Database connection failed: {e}")
         return None
-    
+
 
 def execute_query(query, params=None, fetch_one=False, fetch_all=False):
     conn = get_db_connection()
